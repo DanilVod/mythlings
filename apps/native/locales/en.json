@@ -1,0 +1,124 @@
+{
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "yes": "Yes"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "subtitle": "Sorry, the page you're looking for doesn't exist.",
+    "goToGameStart": "Go to Game Start"
+  },
+  "startScreen": {
+    "title": "MYTHLINGS",
+    "subtitle": "ADVENTURE",
+    "beginJourney": "Begin Journey",
+    "continueGame": "Continue Game",
+    "settings": "Settings"
+  },
+  "characterSelection": {
+    "title": "Choose Your Mythling",
+    "subtitle": "Select a companion to begin your journey",
+    "selectMythling": "Select a Mythling",
+    "iChoose": "I Choose {{name}}",
+    "selected": "Selected"
+  },
+  "mythlings": {
+    "fire": {
+      "name": "Ignis",
+      "description": "A fierce and passionate warrior"
+    },
+    "water": {
+      "name": "Aqua",
+      "description": "A calm and wise protector"
+    },
+    "earth": {
+      "name": "Terra",
+      "description": "A strong and steadfast guardian"
+    }
+  },
+  "usernameSelection": {
+    "title": "Pick Username",
+    "placeholder": "Enter your username",
+    "nameRequired": "Please enter your username",
+    "nameTooShort": "Username must be at least 2 characters",
+    "nameTooLong": "Username must be less than 20 characters"
+  },
+  "home": {
+    "floor": "Floor",
+    "startBattle": "Start Battle",
+    "onboarding": {
+      "title": "Tap here to start your first battle!",
+      "dismiss": "Got it!"
+    }
+  },
+  "tutorial": {
+    "title": "TUTORIAL PROGRESS",
+    "floor": "Floor"
+  },
+  "treasure": {
+    "claimNow": "CLAIM NOW"
+  },
+  "tabs": {
+    "incubation": "Incubation",
+    "collections": "Collections",
+    "battle": "Battle",
+    "inventory": "Inventory",
+    "shop": "Shop"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "settings": {
+    "title": "Settings",
+    "changeUsername": "Change Username",
+    "usernamePlaceholder": "Enter new username",
+    "save": "Save",
+    "account": "Account",
+    "connectAccount": "Connect Account",
+    "disconnectAccount": "Disconnect Account",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "confirmPasswordRequired": "Please confirm your password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "signingIn": "Signing in...",
+    "signingUp": "Signing up...",
+    "syncing": "Syncing data...",
+    "syncSuccess": "Data synced successfully!",
+    "syncError": "Error syncing data. Please try again.",
+    "authError": "Authentication error. Please try again.",
+    "usernameUpdated": "Username updated successfully!",
+    "usernameError": "Error updating username. Please try again."
+  },
+  "battleSelection": {
+    "title": "Battle Preparation",
+    "yourTeam": "Your Team",
+    "enemyTeam": "Enemy Team",
+    "availableMythlings": "Available Mythlings",
+    "selectMythlings": "Select up to 4 mythlings",
+    "startBattle": "Start Battle"
+  },
+  "battle": {
+    "yourTurn": "Your Turn",
+    "enemyTurn": "Enemy Turn",
+    "victory": "VICTORY!",
+    "defeat": "DEFEAT",
+    "playAgain": "Play Again",
+    "exitBattle": "Exit Battle",
+    "exitConfirm": "Are you sure you want to exit? Progress will be lost."
+  }
+}

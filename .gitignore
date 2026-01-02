@@ -13,6 +13,7 @@ build
 .env*.local
 
 # IDEs and editors
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -51,3 +52,9 @@ temp
 
 # Kilocode
 .Kilocode
+
+# Plans
+*.md
+
+# Scripts
+*.sh

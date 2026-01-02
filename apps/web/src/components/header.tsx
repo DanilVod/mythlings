@@ -10,6 +10,7 @@ export default function Header() {
     { to: "/todos", label: "Todos" },
   ] as const;
 
+
   return (
     <div>
       <div className="flex flex-row items-center justify-between px-2 py-1">

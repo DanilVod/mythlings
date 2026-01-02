@@ -1,0 +1,124 @@
+{
+  "common": {
+    "back": "Назад",
+    "next": "Далее",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить",
+    "loading": "Загрузка...",
+    "yes": "Да"
+  },
+  "notFound": {
+    "title": "Страница не найдена",
+    "subtitle": "Извините, страница, которую вы ищете, не существует.",
+    "goToGameStart": "Перейти к началу игры"
+  },
+  "startScreen": {
+    "title": "MYTHLINGS",
+    "subtitle": "ПРИКЛЮЧЕНИЕ",
+    "beginJourney": "Начать путешествие",
+    "continueGame": "Продолжить игру",
+    "settings": "Настройки"
+  },
+  "characterSelection": {
+    "title": "Выбери своего Мифлинга",
+    "subtitle": "Выбери спутника, чтобы начать своё путешествие",
+    "selectMythling": "Выбери Мифлинга",
+    "iChoose": "Я выбираю {{name}}",
+    "selected": "Выбрано"
+  },
+  "mythlings": {
+    "fire": {
+      "name": "Игнис",
+      "description": "Свирепый и страстный воин"
+    },
+    "water": {
+      "name": "Аква",
+      "description": "Спокойный и мудрый защитник"
+    },
+    "earth": {
+      "name": "Терра",
+      "description": "Сильный и стойкий хранитель"
+    }
+  },
+  "usernameSelection": {
+    "title": "Выбери имя пользователя",
+    "placeholder": "Введи имя пользователя",
+    "nameRequired": "Пожалуйста, введи имя пользователя",
+    "nameTooShort": "Имя пользователя должно содержать минимум 2 символа",
+    "nameTooLong": "Имя пользователя должно содержать менее 20 символов"
+  },
+  "home": {
+    "floor": "Этаж",
+    "startBattle": "Начать бой",
+    "onboarding": {
+      "title": "Нажми сюда, чтобы начать свой первый бой!",
+      "dismiss": "Понятно!"
+    }
+  },
+  "tutorial": {
+    "title": "ПРОГРЕСС ОБУЧЕНИЯ",
+    "floor": "Этаж"
+  },
+  "treasure": {
+    "claimNow": "ЗАБРАТЬ"
+  },
+  "tabs": {
+    "incubation": "Инкубация",
+    "collections": "Коллекции",
+    "battle": "Батл",
+    "inventory": "Инвентарь",
+    "shop": "Магазин"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский"
+  },
+  "settings": {
+    "title": "Настройки",
+    "changeUsername": "Изменить имя пользователя",
+    "usernamePlaceholder": "Введи новое имя пользователя",
+    "save": "Сохранить",
+    "account": "Аккаунт",
+    "connectAccount": "Подключить аккаунт",
+    "disconnectAccount": "Отключить аккаунт",
+    "connected": "Подключено",
+    "notConnected": "Не подключено",
+    "signIn": "Войти",
+    "signUp": "Зарегистрироваться",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердить пароль",
+    "emailPlaceholder": "Введи свой email",
+    "passwordPlaceholder": "Введи свой пароль",
+    "confirmPasswordPlaceholder": "Подтверди пароль",
+    "emailRequired": "Email обязателен",
+    "passwordRequired": "Пароль обязателен",
+    "confirmPasswordRequired": "Пожалуйста, подтвердите пароль",
+    "passwordsDoNotMatch": "Пароли не совпадают",
+    "signingIn": "Вход...",
+    "signingUp": "Регистрация...",
+    "syncing": "Синхронизация данных...",
+    "syncSuccess": "Данные успешно синхронизированы!",
+    "syncError": "Ошибка синхронизации данных. Попробуйте снова.",
+    "authError": "Ошибка аутентификации. Попробуйте снова.",
+    "usernameUpdated": "Имя пользователя успешно обновлено!",
+    "usernameError": "Ошибка обновления имени пользователя. Попробуйте снова."
+  },
+  "battleSelection": {
+    "title": "Подготовка к бою",
+    "yourTeam": "Твоя команда",
+    "enemyTeam": "Команда противника",
+    "availableMythlings": "Доступные Мифлинги",
+    "selectMythlings": "Выбери до 4 мифлингов",
+    "startBattle": "Начать бой"
+  },
+  "battle": {
+    "yourTurn": "Твой ход",
+    "enemyTurn": "Ход противника",
+    "victory": "ПОБЕДА!",
+    "defeat": "ПОРАЖЕНИЕ",
+    "playAgain": "Играть снова",
+    "exitBattle": "Выйти из боя",
+    "exitConfirm": "Вы уверены, что хотите выйти? Прогресс будет потерян."
+  }
+}
