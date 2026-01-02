@@ -1,0 +1,3 @@
+{
+  "extends": "@mythlings/config/tsconfig.base.json"
+}
