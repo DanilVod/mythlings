@@ -13,11 +13,48 @@ app.use(logger());
 app.use(
   '/*',
   cors({
-    origin: (origin) =>
-      origin ? (origin === env.CORS_ORIGIN ? origin : null) : '*',
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    origin: (origin) => {
+      if (!origin) return '*';
+
+      if (origin === env.CORS_ORIGIN) return origin;
+
+      // Allow native app schemes
+      const allowedOrigins = [
+        env.CORS_ORIGIN,
+        'mybettertapp://',
+        'exp://',
+        'http://localhost:*',
+        'http://127.0.0.1:*',
+        'http://192.168.0.110:*',
+      ];
+
+      // Check if origin matches any allowed pattern
+      if (
+        allowedOrigins.some((allowed) => {
+          if (allowed.includes('*')) {
+            const regex = new RegExp(allowed.replace('*', '.*'));
+            return regex.test(origin);
+          }
+          return origin === allowed;
+        })
+      ) {
+        return origin;
+      }
+
+      return null;
+    },
+    allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
+    allowHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'Access-Control-Request-Method',
+      'Access-Control-Request-Headers',
+    ],
     credentials: true,
+    maxAge: 86400,
   }),
 );
 

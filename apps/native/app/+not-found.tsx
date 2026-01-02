@@ -1,33 +1,40 @@
-import { Link, Stack } from "expo-router";
-import { Text, View, StyleSheet } from "react-native";
+import { Link, Stack } from 'expo-router';
+import { Text, View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
-import { Container } from "@/components/container";
-import { NAV_THEME } from "@/lib/constants";
-import { useColorScheme } from "@/lib/use-color-scheme";
+import { Container } from '@/components/container';
+import { NAV_THEME } from '@/lib/constants';
+import { useColorScheme } from '@/lib/use-color-scheme';
 
 export default function NotFoundScreen() {
   const { colorScheme } = useColorScheme();
-  const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
+  const theme = colorScheme === 'dark' ? NAV_THEME.dark : NAV_THEME.light;
+  const { t } = useTranslation();
 
   return (
     <>
-      <Stack.Screen options={{ title: "Oops!" }} />
+      <Stack.Screen options={{ title: 'Oops!' }} />
       <Container>
         <View style={styles.container}>
           <View style={styles.content}>
             <Text style={styles.emoji}>🤔</Text>
-            <Text style={[styles.title, { color: theme.text }]}>Page Not Found</Text>
-            <Text style={[styles.subtitle, { color: theme.text, opacity: 0.7 }]}>
-              Sorry, the page you're looking for doesn't exist.
+            <Text style={[styles.title, { color: theme.text }]}>
+              {t('notFound.title')}
             </Text>
-            <Link href="/" asChild>
+            <Text
+              style={[styles.subtitle, { color: theme.text, opacity: 0.7 }]}>
+              {t('notFound.subtitle')}
+            </Text>
+            <Link href='/game/start-screen' asChild>
               <Text
                 style={[
                   styles.link,
-                  { color: theme.primary, backgroundColor: `${theme.primary}1a` },
-                ]}
-              >
-                Go to Home
+                  {
+                    color: theme.primary,
+                    backgroundColor: `${theme.primary}1a`,
+                  },
+                ]}>
+                {t('notFound.goToGameStart')}
               </Text>
             </Link>
           </View>
@@ -40,12 +47,12 @@ export default function NotFoundScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
   },
   content: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   emoji: {
     fontSize: 48,
@@ -53,13 +60,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 24,
   },
   link: {
