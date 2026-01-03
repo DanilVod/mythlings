@@ -1,26 +1,72 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
-import { MythlingType, MYTHLINGS } from '@/lib/mythling-types';
-import { createPlayerTeam, generateEnemyTeam } from '@/lib/battle-types';
-import { BattleButton } from '@/components/game/battle-button';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { env } from '@mythlings/env/native';
+import { MythlingType } from '@entities/mythling/model/types';
+import {
+  createPlayerTeam,
+  createEnemyTeamFromFloor,
+  generateEnemyTeam,
+} from '@entities/battle/lib/battle-utils';
+import { BattleButton } from '@features/battle-system/ui/battle-button';
+import { useGameData } from '@features/game-data';
+import { fetchFloorByNumber } from '@features/game-data/lib/game-api';
+import type { GameFloor } from '@features/game-data/lib/game-api';
+import { BattleMythling } from '@entities/battle/model/types';
 
 export default function BattleSelectionScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const { floors, mythlings } = useGameData();
+
   const [selectedMythlings, setSelectedMythlings] = useState<MythlingType[]>(
     [],
   );
+  const [currentFloor, setCurrentFloor] = useState<GameFloor | null>(null);
+  const [isLoadingFloor, setIsLoadingFloor] = useState(true);
+
+  const floorNumber = params.floorNumber
+    ? parseInt(params.floorNumber as string)
+    : 1;
+
+  useEffect(() => {
+    loadFloorData();
+  }, [floorNumber, floors]);
+
+  const loadFloorData = async () => {
+    try {
+      setIsLoadingFloor(true);
+      // First try to get from context (already loaded)
+      let floor = floors.find((f) => f.floorNumber === floorNumber);
+
+      // If not found, fetch from server
+      if (!floor) {
+        const fetchedFloor = await fetchFloorByNumber(floorNumber);
+        console.log(fetchedFloor);
+        floor = fetchedFloor ?? undefined;
+      }
+
+      setCurrentFloor(floor ?? null);
+    } catch (error) {
+      console.error('Error loading floor data:', error);
+      setCurrentFloor(null);
+    } finally {
+      setIsLoadingFloor(false);
+    }
+  };
 
   const toggleMythling = (type: MythlingType) => {
     if (selectedMythlings.includes(type)) {
@@ -30,11 +76,21 @@ export default function BattleSelectionScreen() {
     }
   };
 
-  const playerTeam = createPlayerTeam(selectedMythlings);
-  const enemyTeam = generateEnemyTeam(1);
+  const playerTeam = createPlayerTeam(selectedMythlings, mythlings);
+  const enemyTeam = currentFloor
+    ? createEnemyTeamFromFloor(currentFloor)
+    : generateEnemyTeam(1);
 
   const handleStartBattle = () => {
-    router.push('/game/battle-screen');
+    // Pass floor data and team data to battle screen
+    router.push({
+      pathname: '/game/battle-screen',
+      params: {
+        floorNumber: floorNumber.toString(),
+        playerTeam: JSON.stringify(playerTeam),
+        enemyTeam: JSON.stringify(enemyTeam),
+      },
+    });
   };
 
   const handleBack = () => {
@@ -75,10 +131,22 @@ export default function BattleSelectionScreen() {
         <View style={styles.teamCard}>
           {selectedMythlings.length > 0 ? (
             selectedMythlings.map((type) => {
-              const mythling = MYTHLINGS.find((m) => m.type === type);
+              const mythling = mythlings.find((m) => m.type === type);
+              const iconPath = mythling?.icon?.startsWith('/uploads/')
+                ? `${env.EXPO_PUBLIC_SERVER_URL}${mythling.icon}`
+                : undefined;
+
               return (
                 <View key={type} style={styles.playerMythling}>
-                  <Text style={styles.mythlingEmoji}>{mythling?.emoji}</Text>
+                  {iconPath ? (
+                    <Image
+                      source={{ uri: iconPath }}
+                      style={styles.mythlingImage}
+                      resizeMode='contain'
+                    />
+                  ) : (
+                    <Text style={styles.mythlingEmoji}>{mythling?.icon}</Text>
+                  )}
                   <Text style={styles.mythlingLevel}>Lv1</Text>
                 </View>
               );
@@ -92,21 +160,43 @@ export default function BattleSelectionScreen() {
 
         {/* Enemy Team Preview */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTextColumn}>
-              <Text style={styles.floorText}>Floor 1</Text>
-              <Text style={styles.foesText}>FOES</Text>
-              <Text style={styles.bpText}>BP:{enemyTeam.totalPower}</Text>
+          {isLoadingFloor ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size='large' color='#FFFFFF' />
+              <Text style={styles.loadingText}>Loading floor data...</Text>
             </View>
-            <View style={styles.enemyTeam}>
-              {enemyTeam.mythlings.map((mythling) => (
-                <View key={mythling.id} style={styles.enemyMythling}>
-                  <Text style={styles.enemyEmoji}>{mythling.emoji}</Text>
-                  <Text style={styles.enemyLevel}>Lv1</Text>
-                </View>
-              ))}
+          ) : currentFloor ? (
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTextColumn}>
+                <Text style={styles.floorText}>Floor {floorNumber}</Text>
+                <Text style={styles.bpText}>BP:{enemyTeam.totalPower}</Text>
+              </View>
+              <View style={styles.enemyTeam}>
+                {enemyTeam.mythlings.map((mythling: BattleMythling) => {
+                  const emojiPath = mythling.emoji?.startsWith('/uploads/')
+                    ? `${env.EXPO_PUBLIC_SERVER_URL}${mythling.emoji}`
+                    : undefined;
+
+                  return (
+                    <View key={mythling.id} style={styles.enemyMythling}>
+                      {emojiPath ? (
+                        <Image
+                          source={{ uri: emojiPath }}
+                          style={styles.enemyImage}
+                          resizeMode='contain'
+                        />
+                      ) : (
+                        <Text style={styles.enemyEmoji}>{mythling.emoji}</Text>
+                      )}
+                      <Text style={styles.enemyLevel}>Lv1</Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          ) : (
+            <Text style={styles.errorText}>Failed to load floor data</Text>
+          )}
         </View>
 
         {/* Selection Area */}
@@ -116,17 +206,27 @@ export default function BattleSelectionScreen() {
             showsVerticalScrollIndicator={true}
             contentContainerStyle={styles.mythlingList}
             style={styles.scrollView}>
-            {MYTHLINGS.map((mythling) => {
+            {mythlings.map((mythling) => {
               const isSelected = selectedMythlings.includes(mythling.type);
               return (
                 <TouchableOpacity
-                  key={mythling.type}
+                  key={mythling.id}
                   style={[
                     styles.mythlingCard,
                     isSelected && styles.selectedCard,
                   ]}
                   onPress={() => toggleMythling(mythling.type)}>
-                  <Text style={styles.cardEmoji}>{mythling.emoji}</Text>
+                  {mythling.icon?.startsWith('/uploads/') ? (
+                    <Image
+                      source={{
+                        uri: `${env.EXPO_PUBLIC_SERVER_URL}${mythling.icon}`,
+                      }}
+                      style={styles.cardImage}
+                      resizeMode='contain'
+                    />
+                  ) : (
+                    <Text style={styles.cardEmoji}>{mythling.icon}</Text>
+                  )}
                   <Text style={styles.cardName}>{mythling.name}</Text>
                   {isSelected && (
                     <View style={styles.checkmark}>
@@ -223,6 +323,11 @@ const styles = StyleSheet.create({
     fontSize: 48,
     marginBottom: 4,
   },
+  mythlingImage: {
+    width: 48,
+    height: 48,
+    marginBottom: 4,
+  },
   mythlingLevel: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -286,6 +391,11 @@ const styles = StyleSheet.create({
     fontSize: 48,
     marginBottom: 4,
   },
+  enemyImage: {
+    width: 48,
+    height: 48,
+    marginBottom: 4,
+  },
   enemyLevel: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -336,6 +446,11 @@ const styles = StyleSheet.create({
     fontSize: 40,
     marginBottom: 6,
   },
+  cardImage: {
+    width: 40,
+    height: 40,
+    marginBottom: 6,
+  },
   cardName: {
     fontSize: 12,
     fontWeight: 'bold',
@@ -383,5 +498,22 @@ const styles = StyleSheet.create({
   },
   buttonWrapperDisabled: {
     opacity: 0.5,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    marginTop: 10,
+    fontSize: 14,
+    fontFamily: 'Bungee_400Regular',
+  },
+  errorText: {
+    color: '#EF4444',
+    textAlign: 'center',
+    padding: 20,
+    fontSize: 14,
+    fontFamily: 'Bungee_400Regular',
   },
 });

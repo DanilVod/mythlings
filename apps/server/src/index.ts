@@ -6,6 +6,9 @@ import { env } from '@mythlings/env/server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { existsSync } from 'node:fs';
 
 const app = new Hono();
 
@@ -25,7 +28,7 @@ app.use(
         'exp://',
         'http://localhost:*',
         'http://127.0.0.1:*',
-        'http://192.168.0.110:*',
+        'http://192.168.0.106:*',
       ];
 
       // Check if origin matches any allowed pattern
@@ -72,6 +75,70 @@ app.use(
 
 app.get('/', (c) => {
   return c.text('OK');
+});
+
+// File upload endpoint for icons
+app.post('/api/upload/icon', async (c) => {
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return c.json({ error: 'No file provided' }, 400);
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return c.json(
+        { error: 'Invalid file type. Only PNG, JPEG, and WebP are allowed.' },
+        400,
+      );
+    }
+
+    // Validate file size (max 2MB)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      return c.json({ error: 'File too large. Maximum size is 2MB.' }, 400);
+    }
+
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = join(process.cwd(), 'public', 'uploads');
+    if (!existsSync(uploadsDir)) {
+      await mkdir(uploadsDir, { recursive: true });
+    }
+
+    // Generate unique filename
+    const ext = file.name.split('.').pop();
+    const filename = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(7)}.${ext}`;
+    const filepath = join(uploadsDir, filename);
+
+    // Save file
+    const buffer = await file.arrayBuffer();
+    await writeFile(filepath, Buffer.from(buffer));
+
+    // Return the URL
+    const url = `${env.CORS_ORIGIN}/uploads/${filename}`;
+    return c.json({ url, filename });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return c.json({ error: 'Failed to upload file' }, 500);
+  }
+});
+
+// Serve static files from public directory
+app.get('/uploads/:filename', async (c) => {
+  const filename = c.req.param('filename');
+  const filepath = join(process.cwd(), 'public', 'uploads', filename);
+
+  try {
+    const file = Bun.file(filepath);
+    return new Response(file);
+  } catch {
+    return c.json({ error: 'File not found' }, 404);
+  }
 });
 
 export default app;

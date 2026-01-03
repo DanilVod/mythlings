@@ -1,6 +1,13 @@
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MythlingType, MYTHLINGS } from '@/lib/mythling-types';
+import { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
+import { MythlingType } from '@entities/mythling/model/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,8 +16,13 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { GradientBackground } from '@/components/game/gradient-background';
-import { updateGameProfile } from '@/lib/game-storage';
+import { GradientBackground } from '@shared/ui/gradient-background';
+import { updateGameProfile } from '@entities/game-profile/lib/game-storage';
+import {
+  GameMythling,
+  fetchStarterMythlings,
+} from '@/features/game-data/lib/game-api';
+import { env } from '@mythlings/env/native';
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -19,10 +31,27 @@ export default function CharacterSelectionScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const [starterMythlings, setStarterMythlings] = useState<GameMythling[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedMythling, setSelectedMythling] = useState<MythlingType | null>(
     null,
   );
   const tooltipOpacity = useSharedValue(0);
+
+  // Fetch starter mythlings on mount
+  useEffect(() => {
+    const loadStarterMythlings = async () => {
+      try {
+        const data = await fetchStarterMythlings();
+        setStarterMythlings(data);
+      } catch (error) {
+        console.error('Error loading starter mythlings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadStarterMythlings();
+  }, []);
 
   const handleSelectMythling = (type: MythlingType) => {
     setSelectedMythling(type);
@@ -56,9 +85,29 @@ export default function CharacterSelectionScreen() {
     opacity: tooltipOpacity.value,
   }));
 
-  const selectedMythlingData = MYTHLINGS.find(
+  // Find selected mythling from server data
+  const selectedMythlingData = starterMythlings.find(
     (m) => m.type === selectedMythling,
   );
+
+  // Show loading indicator while fetching data
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <GradientBackground mythlingType={undefined} />
+        <View
+          style={[
+            styles.content,
+            {
+              paddingTop: insets.top + 24,
+              paddingBottom: insets.bottom + 32,
+            },
+          ]}>
+          <ActivityIndicator size='large' color='#FFFFFF' />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -80,19 +129,21 @@ export default function CharacterSelectionScreen() {
         </View>
 
         <View style={styles.cardsContainer}>
-          {MYTHLINGS.map((mythling) => (
+          {starterMythlings.map((mythling) => (
             <AnimatedTouchableOpacity
-              key={mythling.type}
-              onPress={() => handleSelectMythling(mythling.type)}
+              key={mythling.id}
+              onPress={() =>
+                handleSelectMythling(mythling.type as MythlingType)
+              }
               style={[
                 styles.mythlingCard,
                 selectedMythling === mythling.type && styles.selectedCard,
                 {
                   borderColor:
                     selectedMythling === mythling.type
-                      ? mythling.type === MythlingType.FIRE
+                      ? mythling.type === 'fire'
                         ? '#E85D2A'
-                        : mythling.type === MythlingType.WATER
+                        : mythling.type === 'water'
                         ? '#0096B4'
                         : '#5A7A1D'
                       : '#4B5563',
@@ -100,11 +151,19 @@ export default function CharacterSelectionScreen() {
                 },
               ]}>
               <View style={styles.emojiContainer}>
-                <Text style={styles.emoji}>{mythling.emoji}</Text>
+                {mythling.icon?.startsWith('/uploads/') ? (
+                  <Image
+                    source={{
+                      uri: `${env.EXPO_PUBLIC_SERVER_URL}${mythling.icon}`,
+                    }}
+                    style={styles.mythlingImage}
+                    resizeMode='contain'
+                  />
+                ) : (
+                  <Text style={styles.emoji}>{mythling.icon}</Text>
+                )}
               </View>
-              <Text style={styles.mythlingName}>
-                {t(`mythlings.${mythling.type}.name`)}
-              </Text>
+              <Text style={styles.mythlingName}>{mythling.name}</Text>
             </AnimatedTouchableOpacity>
           ))}
         </View>
@@ -131,16 +190,16 @@ export default function CharacterSelectionScreen() {
             styles.chooseButton,
             {
               backgroundColor: selectedMythlingData
-                ? selectedMythlingData.type === MythlingType.FIRE
+                ? selectedMythlingData.type === 'fire'
                   ? '#FF6B35'
-                  : selectedMythlingData.type === MythlingType.WATER
+                  : selectedMythlingData.type === 'water'
                   ? '#00B4D8'
                   : '#6B8E23'
                 : '#4B5563',
               borderColor: selectedMythlingData
-                ? selectedMythlingData.type === MythlingType.FIRE
+                ? selectedMythlingData.type === 'fire'
                   ? '#E85D2A'
-                  : selectedMythlingData.type === MythlingType.WATER
+                  : selectedMythlingData.type === 'water'
                   ? '#0096B4'
                   : '#5A7A1D'
                 : '#374151',
@@ -217,6 +276,10 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 36,
+  },
+  mythlingImage: {
+    width: 48,
+    height: 48,
   },
   mythlingName: {
     fontSize: 16,

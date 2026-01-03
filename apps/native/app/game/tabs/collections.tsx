@@ -3,9 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { GradientBackground } from '@/components/game/gradient-background';
-import { BottomNavigation } from '@/components/game/bottom-navigation';
-import { MythlingType } from '@/lib/mythling-types';
+import { GradientBackground } from '@shared/ui/gradient-background';
+import { BottomNavigation } from '@features/navigation/ui/bottom-navigation';
 
 type TabType = 'incubation' | 'collections' | 'home' | 'inventory' | 'shop';
 
@@ -26,7 +25,7 @@ export default function CollectionsScreen() {
 
   return (
     <View style={styles.container}>
-      <GradientBackground mythlingType={MythlingType.WATER} />
+      <GradientBackground mythlingType={'water'} />
 
       <View
         style={[

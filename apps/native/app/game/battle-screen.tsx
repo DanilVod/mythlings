@@ -1,206 +1,88 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { env } from '@mythlings/env/native';
 import {
   BattleMythling,
   BattleTeam,
   BattleState,
   Ability,
-} from '@/lib/battle-types';
-import { MythlingType } from '@/lib/mythling-types';
+} from '@entities/battle/model/types';
 
 export default function BattleScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   // Track cooldowns for abilities: { abilityId: remainingTurns }
   const [abilityCooldowns, setAbilityCooldowns] = useState<
     Record<string, number>
   >({});
 
-  // Initialize with default teams
-  const [battleState, setBattleState] = useState<BattleState>(() => {
-    const playerTeam: BattleTeam = {
-      mythlings: [
-        {
-          id: 'player-1',
-          name: 'Phoenix',
-          emoji: '🔥',
-          type: MythlingType.FIRE,
-          power: 120,
-          maxHealth: 100,
-          currentHealth: 100,
-          isPlayer: true,
-          damageDealt: 0,
-          damageReceived: 0,
-          healingDone: 0,
-          abilities: [
-            {
-              id: 'fireball',
-              name: 'Fireball',
-              icon: '🔥',
-              damage: 25,
-              cooldown: 1,
-              description: 'Launch a powerful fireball at the enemy',
-            },
-            {
-              id: 'flame-charge',
-              name: 'Flame Charge',
-              icon: '⚡',
-              damage: 35,
-              cooldown: 2,
-              description: 'Charge forward with burning flames',
-            },
-            {
-              id: 'inferno',
-              name: 'Inferno',
-              icon: '💥',
-              damage: 50,
-              cooldown: 3,
-              description: 'Unleash devastating inferno damage',
-            },
-          ],
-        },
-        {
-          id: 'player-2',
-          name: 'Aqua',
-          emoji: '💧',
-          type: MythlingType.WATER,
-          power: 115,
-          maxHealth: 90,
-          currentHealth: 90,
-          isPlayer: true,
-          damageDealt: 0,
-          damageReceived: 0,
-          healingDone: 0,
-          abilities: [
-            {
-              id: 'water-jet',
-              name: 'Water Jet',
-              icon: '💧',
-              damage: 20,
-              cooldown: 1,
-              description: 'Quick water strike',
-            },
-            {
-              id: 'tidal-wave',
-              name: 'Tidal Wave',
-              icon: '🌊',
-              damage: 30,
-              cooldown: 2,
-              description: 'Powerful tidal wave attack',
-            },
-            {
-              id: 'healing-rain',
-              name: 'Healing Rain',
-              icon: '🌧️',
-              damage: 45,
-              cooldown: 3,
-              description: 'Summon healing rain',
-            },
-          ],
-        },
-      ],
-      totalPower: 235,
-    };
-    const enemyTeam: BattleTeam = {
-      mythlings: [
-        {
-          id: 'enemy-1',
-          name: 'Terra',
-          emoji: '🌍',
-          type: MythlingType.EARTH,
-          power: 110,
-          maxHealth: 95,
-          currentHealth: 95,
-          isPlayer: false,
-          damageDealt: 0,
-          damageReceived: 0,
-          healingDone: 0,
-          abilities: [
-            {
-              id: 'rock-throw',
-              name: 'Rock Throw',
-              icon: '🪨',
-              damage: 22,
-              cooldown: 1,
-              description: 'Throw a rock at the enemy',
-            },
-            {
-              id: 'earthquake',
-              name: 'Earthquake',
-              icon: '🌍',
-              damage: 32,
-              cooldown: 2,
-              description: 'Shake the ground',
-            },
-            {
-              id: 'stone-wall',
-              name: 'Stone Wall',
-              icon: '🧱',
-              damage: 48,
-              cooldown: 3,
-              description: 'Create a defensive barrier',
-            },
-          ],
-        },
-        {
-          id: 'enemy-2',
-          name: 'Ignis',
-          emoji: '🔥',
-          type: MythlingType.FIRE,
-          power: 125,
-          maxHealth: 100,
-          currentHealth: 100,
-          isPlayer: false,
-          damageDealt: 0,
-          damageReceived: 0,
-          healingDone: 0,
-          abilities: [
-            {
-              id: 'fireball',
-              name: 'Fireball',
-              icon: '🔥',
-              damage: 20,
-              cooldown: 1,
-              description: 'Launch a fireball',
-            },
-            {
-              id: 'flame-burst',
-              name: 'Flame Burst',
-              icon: '💥',
-              damage: 35,
-              cooldown: 2,
-              description: 'Quick burst of flames',
-            },
-            {
-              id: 'inferno',
-              name: 'Inferno',
-              icon: '🌋',
-              damage: 55,
-              cooldown: 3,
-              description: 'Devastating inferno attack',
-            },
-          ],
-        },
-      ],
-      totalPower: 235,
-    };
-    return {
-      playerTeam,
-      enemyTeam,
-      currentTurn: 'player',
-      selectedAbility: null,
-      selectedTarget: null,
-      battleLog: ['Battle started!'],
-      isBattleOver: false,
-      winner: null,
-    };
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize battle state with default values
+  const [battleState, setBattleState] = useState<BattleState>({
+    playerTeam: { mythlings: [], totalPower: 0 },
+    enemyTeam: { mythlings: [], totalPower: 0 },
+    currentTurn: 'player',
+    selectedAbility: null,
+    selectedTarget: null,
+    battleLog: ['Battle started!'],
+    isBattleOver: false,
+    winner: null,
   });
+
+  // Load team data from URL params
+  useEffect(() => {
+    const loadBattleData = () => {
+      try {
+        const playerTeamParam = params.playerTeam as string;
+        const enemyTeamParam = params.enemyTeam as string;
+
+        if (!playerTeamParam || !enemyTeamParam) {
+          setError('Battle data not found');
+          setIsLoading(false);
+          return;
+        }
+
+        const playerTeam = JSON.parse(playerTeamParam) as BattleTeam;
+        const enemyTeam = JSON.parse(enemyTeamParam) as BattleTeam;
+
+        setBattleState({
+          playerTeam,
+          enemyTeam,
+          currentTurn: 'player',
+          selectedAbility: null,
+          selectedTarget: null,
+          battleLog: ['Battle started!'],
+          isBattleOver: false,
+          winner: null,
+        });
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error loading battle data:', err);
+        setError('Failed to load battle data');
+        setIsLoading(false);
+      }
+    };
+
+    loadBattleData();
+  }, [params.playerTeam, params.enemyTeam]);
 
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [currentEnemyIndex, setCurrentEnemyIndex] = useState(0);
@@ -249,41 +131,36 @@ export default function BattleScreen() {
     const damage = battleState.selectedAbility.damage;
     const newEnemyHealth = Math.max(0, target.currentHealth - damage);
 
-    // Track statistics - preserve all mythling health values
-    const updatedPlayerTeam = {
-      ...battleState.playerTeam,
-      mythlings: battleState.playerTeam.mythlings.map((m) => {
-        if (m.id === currentPlayerMythling.id) {
-          return {
-            ...m,
-            damageDealt: m.damageDealt + damage,
-            currentHealth: m.currentHealth, // Explicitly preserve health
-          };
-        }
-        // Explicitly preserve all properties for other player mythlings
+    // Create new arrays to ensure immutability
+    const updatedPlayerMythlings = battleState.playerTeam.mythlings.map((m) => {
+      if (m.id === currentPlayerMythling.id) {
         return {
           ...m,
-          currentHealth: m.currentHealth, // Explicitly preserve health
+          damageDealt: m.damageDealt + damage,
         };
-      }),
+      }
+      return { ...m };
+    });
+
+    const updatedEnemyMythlings = battleState.enemyTeam.mythlings.map((m) => {
+      if (m.id === targetId) {
+        return {
+          ...m,
+          currentHealth: newEnemyHealth,
+          damageReceived: m.damageReceived + damage,
+        };
+      }
+      return { ...m };
+    });
+
+    const updatedPlayerTeam = {
+      ...battleState.playerTeam,
+      mythlings: updatedPlayerMythlings,
     };
 
     const updatedEnemyTeam = {
       ...battleState.enemyTeam,
-      mythlings: battleState.enemyTeam.mythlings.map((m) => {
-        if (m.id === targetId) {
-          return {
-            ...m,
-            currentHealth: newEnemyHealth,
-            damageReceived: m.damageReceived + damage,
-          };
-        }
-        // Explicitly preserve health for other enemy mythlings
-        return {
-          ...m,
-          currentHealth: m.currentHealth, // Explicitly preserve health
-        };
-      }),
+      mythlings: updatedEnemyMythlings,
     };
 
     // Set cooldown for the used ability
@@ -336,119 +213,133 @@ export default function BattleScreen() {
   };
 
   const executeEnemyTurn = () => {
-    const aliveEnemies = battleState.enemyTeam.mythlings.filter(
-      (m) => m.currentHealth > 0,
-    );
-    const alivePlayers = battleState.playerTeam.mythlings.filter(
-      (m) => m.currentHealth > 0,
-    );
+    // Use functional update to get the latest state
+    setBattleState((prevBattleState) => {
+      const aliveEnemies = prevBattleState.enemyTeam.mythlings.filter(
+        (m) => m.currentHealth > 0,
+      );
+      const alivePlayers = prevBattleState.playerTeam.mythlings.filter(
+        (m) => m.currentHealth > 0,
+      );
 
-    if (aliveEnemies.length === 0 || alivePlayers.length === 0) return;
+      if (aliveEnemies.length === 0 || alivePlayers.length === 0) {
+        return prevBattleState;
+      }
 
-    // Select a random alive enemy to attack
-    const attacker =
-      aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-    const target =
-      alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
-    const ability =
-      attacker.abilities[Math.floor(Math.random() * attacker.abilities.length)];
-    const damage = ability.damage;
-    const newPlayerHealth = Math.max(0, target.currentHealth - damage);
+      // Select a random alive enemy to attack
+      const attacker =
+        aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+      const target =
+        alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
+      const ability =
+        attacker.abilities[
+          Math.floor(Math.random() * attacker.abilities.length)
+        ];
+      const damage = ability.damage;
+      const newPlayerHealth = Math.max(0, target.currentHealth - damage);
 
-    // Track statistics - preserve all enemy mythling health values
-    const updatedEnemyTeam = {
-      ...battleState.enemyTeam,
-      mythlings: battleState.enemyTeam.mythlings.map((m) => {
-        if (m.id === attacker.id) {
-          // Update attacker's damageDealt but preserve currentHealth
-          return {
-            ...m,
-            damageDealt: m.damageDealt + damage,
-            currentHealth: m.currentHealth, // Explicitly preserve health
-          };
-        }
-        // Explicitly preserve all properties for other enemy mythlings
-        return {
-          ...m,
-          currentHealth: m.currentHealth, // Explicitly preserve health
-        };
-      }),
-    };
+      // Create new arrays to ensure immutability
+      const updatedEnemyMythlings = prevBattleState.enemyTeam.mythlings.map(
+        (m) => {
+          if (m.id === attacker.id) {
+            // Update attacker's damageDealt but preserve currentHealth
+            return {
+              ...m,
+              damageDealt: m.damageDealt + damage,
+            };
+          }
+          // Return a new object with all properties preserved
+          return { ...m };
+        },
+      );
 
-    const updatedPlayerTeam = {
-      ...battleState.playerTeam,
-      mythlings: battleState.playerTeam.mythlings.map((m) =>
-        m.id === target.id
-          ? {
+      const updatedPlayerMythlings = prevBattleState.playerTeam.mythlings.map(
+        (m) => {
+          if (m.id === target.id) {
+            // Update target's health and damage received
+            return {
               ...m,
               currentHealth: newPlayerHealth,
               damageReceived: m.damageReceived + damage,
-            }
-          : {
-              ...m,
-              currentHealth: m.currentHealth, // Preserve health for other player mythlings
-            },
-      ),
-    };
+            };
+          }
+          // Return a new object with all properties preserved
+          return { ...m };
+        },
+      );
 
-    const newLog = [
-      ...battleState.battleLog,
-      `${attacker.name} used ${ability.name}!`,
-      `Dealt ${damage} damage to ${target.name}!`,
-    ];
+      const updatedEnemyTeam = {
+        ...prevBattleState.enemyTeam,
+        mythlings: updatedEnemyMythlings,
+      };
 
-    const alivePlayersAfter = updatedPlayerTeam.mythlings.filter(
-      (m) => m.currentHealth > 0,
-    );
-    const isEnemyWinner = alivePlayersAfter.length === 0;
+      const updatedPlayerTeam = {
+        ...prevBattleState.playerTeam,
+        mythlings: updatedPlayerMythlings,
+      };
 
-    setBattleState((prev) => ({
-      ...prev,
-      enemyTeam: updatedEnemyTeam,
-      playerTeam: updatedPlayerTeam,
-      battleLog: newLog,
-      isBattleOver: isEnemyWinner,
-      winner: isEnemyWinner ? 'enemy' : null,
-      currentTurn: isEnemyWinner ? 'enemy' : 'player',
-    }));
+      const newLog = [
+        ...prevBattleState.battleLog,
+        `${attacker.name} used ${ability.name}!`,
+        `Dealt ${damage} damage to ${target.name}!`,
+      ];
 
-    // Update currentEnemyIndex to the attacker for visual consistency
-    const attackerIndex = battleState.enemyTeam.mythlings.indexOf(attacker);
-    setCurrentEnemyIndex(attackerIndex);
-
-    // Decrement cooldowns after enemy turn
-    if (!isEnemyWinner) {
-      decrementCooldowns();
-
-      // Move to next ALIVE player mythling
-      const alivePlayers = updatedPlayerTeam.mythlings.filter(
+      const alivePlayersAfter = updatedPlayerTeam.mythlings.filter(
         (m) => m.currentHealth > 0,
       );
-      if (alivePlayers.length > 0) {
-        // Find the next alive player mythling
-        const currentPlayerIdx = battleState.playerTeam.mythlings.indexOf(
-          currentPlayerMythling!,
+      const isEnemyWinner = alivePlayersAfter.length === 0;
+
+      // Update currentEnemyIndex to the attacker for visual consistency
+      const attackerIndex =
+        prevBattleState.enemyTeam.mythlings.indexOf(attacker);
+      setCurrentEnemyIndex(attackerIndex);
+
+      // Decrement cooldowns after enemy turn
+      if (!isEnemyWinner) {
+        decrementCooldowns();
+
+        // Move to next ALIVE player mythling
+        const alivePlayers = updatedPlayerTeam.mythlings.filter(
+          (m) => m.currentHealth > 0,
         );
-        let nextPlayerIndex =
-          (currentPlayerIdx + 1) % battleState.playerTeam.mythlings.length;
+        if (alivePlayers.length > 0) {
+          // Find the next alive player mythling
+          const currentPlayerIdx = prevBattleState.playerTeam.mythlings.indexOf(
+            prevBattleState.playerTeam.mythlings[currentPlayerIndex]!,
+          );
+          let nextPlayerIndex =
+            (currentPlayerIdx + 1) %
+            prevBattleState.playerTeam.mythlings.length;
 
-        // Skip dead mythlings
-        let attempts = 0;
-        while (
-          battleState.playerTeam.mythlings[nextPlayerIndex].currentHealth <=
-            0 &&
-          attempts < battleState.playerTeam.mythlings.length
-        ) {
-          nextPlayerIndex =
-            (nextPlayerIndex + 1) % battleState.playerTeam.mythlings.length;
-          attempts++;
+          // Skip dead mythlings
+          let attempts = 0;
+          while (
+            prevBattleState.playerTeam.mythlings[nextPlayerIndex]
+              .currentHealth <= 0 &&
+            attempts < prevBattleState.playerTeam.mythlings.length
+          ) {
+            nextPlayerIndex =
+              (nextPlayerIndex + 1) %
+              prevBattleState.playerTeam.mythlings.length;
+            attempts++;
+          }
+
+          setCurrentPlayerIndex(nextPlayerIndex);
         }
-
-        setCurrentPlayerIndex(nextPlayerIndex);
+      } else {
+        // Show statistics screen after defeat (don't navigate yet)
       }
-    } else {
-      // Show statistics screen after defeat (don't navigate yet)
-    }
+
+      return {
+        ...prevBattleState,
+        enemyTeam: updatedEnemyTeam,
+        playerTeam: updatedPlayerTeam,
+        battleLog: newLog,
+        isBattleOver: isEnemyWinner,
+        winner: isEnemyWinner ? 'enemy' : null,
+        currentTurn: isEnemyWinner ? 'enemy' : 'player',
+      };
+    });
   };
 
   const handleBack = () => {
@@ -467,6 +358,11 @@ export default function BattleScreen() {
       : index === currentEnemyIndex && !isPlayerTurn;
     const level = 5 + Math.floor(Math.random() * 3); // Random level 5-7
 
+    // Handle image URL or emoji
+    const iconPath = mythling.emoji?.startsWith('/uploads/')
+      ? `${env.EXPO_PUBLIC_SERVER_URL}${mythling.emoji}`
+      : undefined;
+
     return (
       <TouchableOpacity
         key={mythling.id}
@@ -480,7 +376,15 @@ export default function BattleScreen() {
         onPress={() => !isPlayer && handleTargetSelect(mythling.id)}
         disabled={mythling.currentHealth <= 0 || battleState.isBattleOver}>
         <View style={styles.mythlingImageContainer}>
-          <Text style={styles.mythlingEmoji}>{mythling.emoji}</Text>
+          {iconPath ? (
+            <Image
+              source={{ uri: iconPath }}
+              style={styles.mythlingImage}
+              resizeMode='contain'
+            />
+          ) : (
+            <Text style={styles.mythlingEmoji}>{mythling.emoji}</Text>
+          )}
           {isCurrentTurn && <View style={styles.turnIndicator} />}
         </View>
         <View style={styles.mythlingInfo}>
@@ -540,8 +444,29 @@ export default function BattleScreen() {
           <View style={styles.headerSpacer} />
         </View>
 
+        {/* Loading State */}
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.loadingText}>Loading battle data...</Text>
+          </View>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.errorButton}
+              onPress={handleBack}>
+              <Text style={styles.errorButtonText}>GO BACK</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Teams Container */}
-        <View style={styles.teamsContainer}>
+        {!isLoading && !error && (
+          <View style={styles.teamsContainer}>
           {/* Player Team - Left */}
           <View style={styles.teamColumn}>
             <Text style={styles.teamLabel}>YOUR TEAM</Text>
@@ -587,176 +512,106 @@ export default function BattleScreen() {
 
             {/* Statistics Panel */}
             <View style={styles.statsPanel}>
-              {/* Column Headers */}
-              <View style={styles.statsHeaderRow}>
-                <View style={styles.statHeaderItem}>
-                  <Text style={styles.statHeaderIcon}>⚔️</Text>
-                  <Text style={styles.statHeaderText}>DMG</Text>
+              {/* Table Header */}
+              <View style={styles.tableHeaderRow}>
+                <View style={styles.tableHeaderCell}>
+                  <Text style={styles.tableHeaderText}></Text>
                 </View>
-                <View style={styles.statHeaderItem}>
-                  <Text style={styles.statHeaderIcon}>🛡️</Text>
-                  <Text style={styles.statHeaderText}>DEF</Text>
+                <View style={styles.tableHeaderCell}>
+                  <Text style={styles.tableHeaderIcon}>⚔️</Text>
+                  <Text style={styles.tableHeaderText}>DMG</Text>
                 </View>
-                <View style={styles.statHeaderItem}>
-                  <Text style={styles.statHeaderIcon}>❤️</Text>
-                  <Text style={styles.statHeaderText}>HP</Text>
+                <View style={styles.tableHeaderCell}>
+                  <Text style={styles.tableHeaderIcon}>🛡️</Text>
+                  <Text style={styles.tableHeaderText}>DEF</Text>
+                </View>
+                <View style={styles.tableHeaderCell}>
+                  <Text style={styles.tableHeaderIcon}>❤️</Text>
+                  <Text style={styles.tableHeaderText}>HEAL</Text>
                 </View>
               </View>
 
               {/* Player Team Statistics */}
-              <View style={styles.statsSection}>
-                <Text style={styles.statsSectionLabel}>YOUR TEAM</Text>
+              <View style={styles.tableBody}>
                 {battleState.playerTeam.mythlings.map((mythling) => (
-                  <View key={mythling.id} style={styles.statRow}>
-                    <View style={styles.statAvatarContainer}>
-                      <Text style={styles.statAvatarEmoji}>
-                        {mythling.emoji}
-                      </Text>
+                  <View key={mythling.id} style={styles.tableRow}>
+                    {/* Mythling Cell */}
+                    <View style={styles.tableCell}>
+                      <View style={styles.tableAvatarContainer}>
+                        <Text style={styles.tableAvatarEmoji}>
+                          {mythling.emoji}
+                        </Text>
+                      </View>
+                      <Text style={styles.tableCellText}>{mythling.name}</Text>
                     </View>
-                    <View style={styles.statBarsContainer}>
-                      <View style={styles.statBarRow}>
-                        <View style={styles.statBarBackground}>
-                          <View
-                            style={[
-                              styles.statBarFill,
-                              styles.damageBar,
-                              {
-                                width: `${Math.min(
-                                  100,
-                                  (mythling.damageDealt / 100) * 100,
-                                )}%`,
-                              },
-                            ]}
-                          />
-                        </View>
-                        <Text style={styles.statValue}>
+                    {/* Damage Cell */}
+                    <View style={styles.tableCell}>
+                      <View style={styles.progressBarContainer}>
+                        <Text style={styles.progressValueText}>
                           {mythling.damageDealt}
                         </Text>
-                      </View>
-                      <View style={styles.statBarRow}>
-                        <View style={styles.statBarBackground}>
+                        <View style={styles.progressBarBackground}>
                           <View
                             style={[
-                              styles.statBarFill,
-                              styles.defenseBar,
+                              styles.progressBarFill,
+                              styles.damageProgressBar,
                               {
                                 width: `${Math.min(
                                   100,
-                                  (mythling.damageReceived / 100) * 100,
+                                  (mythling.damageDealt / 300) * 100,
                                 )}%`,
                               },
                             ]}
                           />
                         </View>
-                        <Text style={styles.statValue}>
+                      </View>
+                    </View>
+                    {/* Damage Received Cell */}
+                    <View style={styles.tableCell}>
+                      <View style={styles.progressBarContainer}>
+                        <Text style={styles.progressValueText}>
                           {mythling.damageReceived}
                         </Text>
-                      </View>
-                      <View style={styles.statBarRow}>
-                        <View style={styles.statBarBackground}>
+                        <View style={styles.progressBarBackground}>
                           <View
                             style={[
-                              styles.statBarFill,
-                              styles.healingBar,
+                              styles.progressBarFill,
+                              styles.defenseProgressBar,
                               {
                                 width: `${Math.min(
                                   100,
-                                  (mythling.healingDone / 100) * 100,
+                                  (mythling.damageReceived / 300) * 100,
                                 )}%`,
                               },
                             ]}
                           />
                         </View>
-                        <Text style={styles.statValue}>
+                      </View>
+                    </View>
+                    {/* Healing Cell */}
+                    <View style={styles.tableCell}>
+                      <View style={styles.progressBarContainer}>
+                        <Text style={styles.progressValueText}>
                           {mythling.healingDone}
                         </Text>
+                        <View style={styles.progressBarBackground}>
+                          <View
+                            style={[
+                              styles.progressBarFill,
+                              styles.healingProgressBar,
+                              {
+                                width: `${Math.min(
+                                  100,
+                                  (mythling.healingDone / 300) * 100,
+                                )}%`,
+                              },
+                            ]}
+                          />
+                        </View>
                       </View>
                     </View>
                   </View>
                 ))}
-              </View>
-
-              {/* Enemy Team Statistics */}
-              <View style={styles.statsSection}>
-                <Text style={styles.statsSectionLabel}>ENEMY TEAM</Text>
-                {battleState.enemyTeam.mythlings.map((mythling) => (
-                  <View key={mythling.id} style={styles.statRow}>
-                    <View style={styles.statAvatarContainer}>
-                      <Text style={styles.statAvatarEmoji}>
-                        {mythling.emoji}
-                      </Text>
-                    </View>
-                    <View style={styles.statBarsContainer}>
-                      <View style={styles.statBarRow}>
-                        <View style={styles.statBarBackground}>
-                          <View
-                            style={[
-                              styles.statBarFill,
-                              styles.damageBar,
-                              {
-                                width: `${Math.min(
-                                  100,
-                                  (mythling.damageDealt / 100) * 100,
-                                )}%`,
-                              },
-                            ]}
-                          />
-                        </View>
-                        <Text style={styles.statValue}>
-                          {mythling.damageDealt}
-                        </Text>
-                      </View>
-                      <View style={styles.statBarRow}>
-                        <View style={styles.statBarBackground}>
-                          <View
-                            style={[
-                              styles.statBarFill,
-                              styles.defenseBar,
-                              {
-                                width: `${Math.min(
-                                  100,
-                                  (mythling.damageReceived / 100) * 100,
-                                )}%`,
-                              },
-                            ]}
-                          />
-                        </View>
-                        <Text style={styles.statValue}>
-                          {mythling.damageReceived}
-                        </Text>
-                      </View>
-                      <View style={styles.statBarRow}>
-                        <View style={styles.statBarBackground}>
-                          <View
-                            style={[
-                              styles.statBarFill,
-                              styles.healingBar,
-                              {
-                                width: `${Math.min(
-                                  100,
-                                  (mythling.healingDone / 100) * 100,
-                                )}%`,
-                              },
-                            ]}
-                          />
-                        </View>
-                        <Text style={styles.statValue}>
-                          {mythling.healingDone}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            {/* Character Comment */}
-            <View style={styles.characterComment}>
-              <View style={styles.characterAvatar}>
-                <Text style={styles.characterAvatarEmoji}>🔥</Text>
-              </View>
-              <View style={styles.commentBubble}>
-                <Text style={styles.commentText}>Awww yeah!</Text>
               </View>
             </View>
 
@@ -998,6 +853,10 @@ const styles = StyleSheet.create({
   mythlingEmoji: {
     fontSize: 48,
   },
+  mythlingImage: {
+    width: 48,
+    height: 48,
+  },
   turnIndicator: {
     position: 'absolute',
     top: -4,
@@ -1212,10 +1071,10 @@ const styles = StyleSheet.create({
   statsContent: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 40,
+    justifyContent: 'flex-start',
+    paddingTop: 60,
     paddingBottom: 20,
+    width: '90%',
   },
   statsWinnerText: {
     fontSize: 48,
@@ -1239,108 +1098,109 @@ const styles = StyleSheet.create({
   },
   statsPanel: {
     backgroundColor: '#1A1A2E',
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
+    padding: 10,
     width: '100%',
-    maxWidth: 400,
     marginBottom: 20,
+    flexShrink: 0,
   },
-  statsHeaderRow: {
+  tableHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  statHeaderItem: {
-    alignItems: 'center',
-  },
-  statHeaderIcon: {
-    fontSize: 24,
     marginBottom: 4,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.12)',
   },
-  statHeaderText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    fontFamily: 'Bungee_400Regular',
+  tableHeaderCell: {
+    flex: 1,
+    alignItems: 'center',
   },
-  statsSection: {
-    marginBottom: 20,
-  },
-  statsSectionLabel: {
+  tableHeaderIcon: {
     fontSize: 14,
+    marginBottom: 1,
+  },
+  tableHeaderText: {
+    fontSize: 8,
     fontWeight: 'bold',
     color: '#FFFFFF',
     fontFamily: 'Bungee_400Regular',
-    marginBottom: 12,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
   },
-  statRow: {
+  tableBody: {
+    gap: 3,
+  },
+  tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 3,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
+    borderRadius: 8,
   },
-  statAvatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  tableCell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tableAvatarContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginBottom: 2,
   },
-  statAvatarEmoji: {
-    fontSize: 28,
+  tableAvatarEmoji: {
+    fontSize: 16,
   },
-  statBarsContainer: {
-    flex: 1,
-    gap: 6,
-  },
-  statBarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statBarBackground: {
-    flex: 1,
-    height: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 6,
-    overflow: 'hidden',
-    marginRight: 8,
-  },
-  statBarFill: {
-    height: '100%',
-    borderRadius: 6,
-  },
-  damageBar: {
-    backgroundColor: '#EF4444',
-  },
-  defenseBar: {
-    backgroundColor: '#3B82F6',
-  },
-  healingBar: {
-    backgroundColor: '#10B981',
-  },
-  statValue: {
-    fontSize: 12,
+  tableCellText: {
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#FFFFFF',
     fontFamily: 'Bungee_400Regular',
-    minWidth: 30,
-    textAlign: 'right',
+    textAlign: 'center',
+  },
+  tableValueText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontFamily: 'Bungee_400Regular',
+    marginBottom: 2,
+  },
+  progressBarContainer: {
+    width: '80%',
+    alignItems: 'center',
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  damageProgressBar: {
+    backgroundColor: '#EF4444',
+  },
+  defenseProgressBar: {
+    backgroundColor: '#3B82F6',
+  },
+  healingProgressBar: {
+    backgroundColor: '#10B981',
+  },
+  progressValueText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontFamily: 'Bungee_400Regular',
   },
   characterComment: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
   },
   characterAvatar: {
     width: 60,
@@ -1380,6 +1240,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 8,
     elevation: 8,
+    marginTop: 'auto',
   },
   doneButtonText: {
     fontSize: 20,
@@ -1389,5 +1250,44 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 0,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    marginTop: 16,
+    fontFamily: 'Bungee_400Regular',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontFamily: 'Bungee_400Regular',
+  },
+  errorButton: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  errorButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontFamily: 'Bungee_400Regular',
   },
 });

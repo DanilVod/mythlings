@@ -9,11 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Admin_rootRouteImport } from './routes/admin/__root'
 import { Route as TodosRouteImport } from './routes/todos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminMythlingsIndexRouteImport } from './routes/admin/mythlings/index'
+import { Route as AdminFloorsIndexRouteImport } from './routes/admin/floors/index'
+import { Route as AdminAbilitiesIndexRouteImport } from './routes/admin/abilities/index'
+import { Route as AdminMythlingsMythlingsIdRouteImport } from './routes/admin/mythlings/$mythlingsId'
+import { Route as AdminFloorsFloorsIdRouteImport } from './routes/admin/floors/$floorsId'
+import { Route as AdminAbilitiesAbilitiesIdRouteImport } from './routes/admin/abilities/$abilitiesId'
 
+const Admin_rootRoute = Admin_rootRouteImport.update({
+  id: '/admin/__root',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TodosRoute = TodosRouteImport.update({
   id: '/todos',
   path: '/todos',
@@ -34,18 +46,71 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMythlingsIndexRoute = AdminMythlingsIndexRouteImport.update({
+  id: '/admin/mythlings/',
+  path: '/admin/mythlings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFloorsIndexRoute = AdminFloorsIndexRouteImport.update({
+  id: '/admin/floors/',
+  path: '/admin/floors/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAbilitiesIndexRoute = AdminAbilitiesIndexRouteImport.update({
+  id: '/admin/abilities/',
+  path: '/admin/abilities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMythlingsMythlingsIdRoute =
+  AdminMythlingsMythlingsIdRouteImport.update({
+    id: '/admin/mythlings/$mythlingsId',
+    path: '/admin/mythlings/$mythlingsId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminFloorsFloorsIdRoute = AdminFloorsFloorsIdRouteImport.update({
+  id: '/admin/floors/$floorsId',
+  path: '/admin/floors/$floorsId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAbilitiesAbilitiesIdRoute =
+  AdminAbilitiesAbilitiesIdRouteImport.update({
+    id: '/admin/abilities/$abilitiesId',
+    path: '/admin/abilities/$abilitiesId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/todos': typeof TodosRoute
+  '/admin': typeof Admin_rootRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/abilities/$abilitiesId': typeof AdminAbilitiesAbilitiesIdRoute
+  '/admin/floors/$floorsId': typeof AdminFloorsFloorsIdRoute
+  '/admin/mythlings/$mythlingsId': typeof AdminMythlingsMythlingsIdRoute
+  '/admin/abilities': typeof AdminAbilitiesIndexRoute
+  '/admin/floors': typeof AdminFloorsIndexRoute
+  '/admin/mythlings': typeof AdminMythlingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/todos': typeof TodosRoute
+  '/admin': typeof Admin_rootRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/abilities/$abilitiesId': typeof AdminAbilitiesAbilitiesIdRoute
+  '/admin/floors/$floorsId': typeof AdminFloorsFloorsIdRoute
+  '/admin/mythlings/$mythlingsId': typeof AdminMythlingsMythlingsIdRoute
+  '/admin/abilities': typeof AdminAbilitiesIndexRoute
+  '/admin/floors': typeof AdminFloorsIndexRoute
+  '/admin/mythlings': typeof AdminMythlingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +118,58 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/todos': typeof TodosRoute
+  '/admin/__root': typeof Admin_rootRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/abilities/$abilitiesId': typeof AdminAbilitiesAbilitiesIdRoute
+  '/admin/floors/$floorsId': typeof AdminFloorsFloorsIdRoute
+  '/admin/mythlings/$mythlingsId': typeof AdminMythlingsMythlingsIdRoute
+  '/admin/abilities/': typeof AdminAbilitiesIndexRoute
+  '/admin/floors/': typeof AdminFloorsIndexRoute
+  '/admin/mythlings/': typeof AdminMythlingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/todos'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/todos'
+    | '/admin'
+    | '/admin/dashboard'
+    | '/admin/abilities/$abilitiesId'
+    | '/admin/floors/$floorsId'
+    | '/admin/mythlings/$mythlingsId'
+    | '/admin/abilities'
+    | '/admin/floors'
+    | '/admin/mythlings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/todos'
-  id: '__root__' | '/' | '/dashboard' | '/login' | '/todos'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/todos'
+    | '/admin'
+    | '/admin/dashboard'
+    | '/admin/abilities/$abilitiesId'
+    | '/admin/floors/$floorsId'
+    | '/admin/mythlings/$mythlingsId'
+    | '/admin/abilities'
+    | '/admin/floors'
+    | '/admin/mythlings'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/todos'
+    | '/admin/__root'
+    | '/admin/dashboard'
+    | '/admin/abilities/$abilitiesId'
+    | '/admin/floors/$floorsId'
+    | '/admin/mythlings/$mythlingsId'
+    | '/admin/abilities/'
+    | '/admin/floors/'
+    | '/admin/mythlings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +177,25 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   TodosRoute: typeof TodosRoute
+  Admin_rootRoute: typeof Admin_rootRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminAbilitiesAbilitiesIdRoute: typeof AdminAbilitiesAbilitiesIdRoute
+  AdminFloorsFloorsIdRoute: typeof AdminFloorsFloorsIdRoute
+  AdminMythlingsMythlingsIdRoute: typeof AdminMythlingsMythlingsIdRoute
+  AdminAbilitiesIndexRoute: typeof AdminAbilitiesIndexRoute
+  AdminFloorsIndexRoute: typeof AdminFloorsIndexRoute
+  AdminMythlingsIndexRoute: typeof AdminMythlingsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin/__root': {
+      id: '/admin/__root'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof Admin_rootRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/todos': {
       id: '/todos'
       path: '/todos'
@@ -99,6 +224,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mythlings/': {
+      id: '/admin/mythlings/'
+      path: '/admin/mythlings'
+      fullPath: '/admin/mythlings'
+      preLoaderRoute: typeof AdminMythlingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/floors/': {
+      id: '/admin/floors/'
+      path: '/admin/floors'
+      fullPath: '/admin/floors'
+      preLoaderRoute: typeof AdminFloorsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/abilities/': {
+      id: '/admin/abilities/'
+      path: '/admin/abilities'
+      fullPath: '/admin/abilities'
+      preLoaderRoute: typeof AdminAbilitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mythlings/$mythlingsId': {
+      id: '/admin/mythlings/$mythlingsId'
+      path: '/admin/mythlings/$mythlingsId'
+      fullPath: '/admin/mythlings/$mythlingsId'
+      preLoaderRoute: typeof AdminMythlingsMythlingsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/floors/$floorsId': {
+      id: '/admin/floors/$floorsId'
+      path: '/admin/floors/$floorsId'
+      fullPath: '/admin/floors/$floorsId'
+      preLoaderRoute: typeof AdminFloorsFloorsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/abilities/$abilitiesId': {
+      id: '/admin/abilities/$abilitiesId'
+      path: '/admin/abilities/$abilitiesId'
+      fullPath: '/admin/abilities/$abilitiesId'
+      preLoaderRoute: typeof AdminAbilitiesAbilitiesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +281,14 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   TodosRoute: TodosRoute,
+  Admin_rootRoute: Admin_rootRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminAbilitiesAbilitiesIdRoute: AdminAbilitiesAbilitiesIdRoute,
+  AdminFloorsFloorsIdRoute: AdminFloorsFloorsIdRoute,
+  AdminMythlingsMythlingsIdRoute: AdminMythlingsMythlingsIdRoute,
+  AdminAbilitiesIndexRoute: AdminAbilitiesIndexRoute,
+  AdminFloorsIndexRoute: AdminFloorsIndexRoute,
+  AdminMythlingsIndexRoute: AdminMythlingsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
