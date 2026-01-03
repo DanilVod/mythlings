@@ -2,9 +2,9 @@ import { Link, Stack } from 'expo-router';
 import { Text, View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { Container } from '@/components/container';
-import { NAV_THEME } from '@/lib/constants';
-import { useColorScheme } from '@/lib/use-color-scheme';
+import { Container } from '@shared/ui/container';
+import { NAV_THEME } from '@shared/lib/constants';
+import { useColorScheme } from '@shared/lib/use-color-scheme';
 
 export default function NotFoundScreen() {
   const { colorScheme } = useColorScheme();

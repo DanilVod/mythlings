@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { router } from 'expo-router';
-import { checkOnboardingCompleted } from '@/lib/game-storage';
+import { checkOnboardingCompleted } from '@entities/game-profile/lib/game-storage';
 
 export default function Index() {
   useEffect(() => {

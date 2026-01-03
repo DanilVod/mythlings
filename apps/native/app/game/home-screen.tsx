@@ -4,14 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Character } from '@/components/game/character';
-import { StartBattleButton } from '@/components/game/start-battle-button';
-import { OnboardingTooltip } from '@/components/game/onboarding-tooltip';
-import { BottomNavigation } from '@/components/game/bottom-navigation';
-import { TopStatusBar } from '@/components/game/top-status-bar';
-import { TutorialProgress } from '@/components/game/tutorial-progress';
-import { TreasureChest } from '@/components/game/treasure-chest';
-import { useGameData } from '@/contexts/GameDataContext';
+import { Character } from '@entities/mythling/ui/character';
+import { StartBattleButton } from '@features/battle-system/ui/start-battle-button';
+import { OnboardingTooltip } from '@features/onboarding/ui/onboarding-tooltip';
+import { BottomNavigation } from '@features/navigation/ui/bottom-navigation';
+import { TopStatusBar } from '@features/navigation/ui/top-status-bar';
+import { TutorialProgress } from '@features/tutorial/ui/tutorial-progress';
+import { TreasureChest } from '@features/treasure/ui/treasure-chest';
+import { useGameData } from '@features/game-data';
 
 type TabType = 'incubation' | 'collections' | 'home' | 'inventory' | 'shop';
 
@@ -22,9 +22,12 @@ export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { profile, isLoading: isGameDataLoading } = useGameData();
-  const [currentFloor, setCurrentFloor] = useState(4);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('home');
+
+  // Use currentFloor from profile, default to 1 if not available
+  const currentFloor = profile?.currentFloor || 1;
+  const totalFloors = profile?.totalFloors || 10;
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -47,7 +50,11 @@ export default function HomeScreen() {
 
   const handleStartBattle = () => {
     console.log('Start Battle pressed on Floor', currentFloor);
-    router.push('/game/battle-selection-screen');
+    // Pass the current floor number to the battle selection screen
+    router.push({
+      pathname: '/game/battle-selection-screen',
+      params: { floorNumber: currentFloor.toString() },
+    });
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -123,7 +130,10 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
           {/* Tutorial Progress */}
-          <TutorialProgress currentFloor={3} totalFloors={10} />
+          <TutorialProgress
+            currentFloor={currentFloor}
+            totalFloors={totalFloors}
+          />
 
           {/* Treasure Chest Section */}
           <TreasureChest onClaim={handleClaimTreasure} />

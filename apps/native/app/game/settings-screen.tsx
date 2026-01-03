@@ -11,11 +11,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { GradientBackground } from '@/components/game/gradient-background';
-import { MythlingType } from '@/lib/mythling-types';
-import { useAuth } from '@/contexts/AuthContext';
-import { useGameData } from '@/contexts/GameDataContext';
-import { syncLocalDataToServer } from '@/lib/game-storage';
+import { GradientBackground } from '@shared/ui/gradient-background';
+import { useAuth } from '@features/auth';
+import { useGameData } from '@features/game-data';
+import { syncLocalDataToServer } from '@entities/game-profile/lib/game-storage';
 
 type AuthMode = 'signIn' | 'signUp';
 
@@ -140,7 +139,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <GradientBackground mythlingType={MythlingType.FIRE} />
+      <GradientBackground mythlingType={'fire'} />
 
       <View
         style={[

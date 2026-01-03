@@ -2,13 +2,13 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { GradientBackground } from '@/components/game/gradient-background';
-import { ParticleSystem } from '@/components/game/particle-system';
-import { GameTitle } from '@/components/game/game-title';
-import { Character } from '@/components/game/character';
-import { LanguageSelector } from '@/components/game/language-selector';
-import { PrimaryButton } from '@/components/game/primary-button';
-import { SecondaryActions } from '@/components/game/secondary-actions';
+import { GradientBackground } from '@shared/ui/gradient-background';
+import { ParticleSystem } from '@shared/ui/particle-system';
+import { GameTitle } from '@features/game-data/ui/game-title';
+import { Character } from '@entities/mythling/ui/character';
+import { LanguageSelector } from '@features/settings/ui/language-selector';
+import { PrimaryButton } from '@shared/ui/primary-button';
+import { SecondaryActions } from '@features/settings/ui/secondary-actions';
 
 export default function StartScreen() {
   const insets = useSafeAreaInsets();

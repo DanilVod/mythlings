@@ -3,9 +3,11 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { GradientBackground } from '@/components/game/gradient-background';
-import { MythlingType } from '@/lib/mythling-types';
-import { updateGameProfile, completeOnboarding } from '@/lib/game-storage';
+import { GradientBackground } from '@shared/ui/gradient-background';
+import {
+  updateGameProfile,
+  completeOnboarding,
+} from '@entities/game-profile/lib/game-storage';
 
 export default function UsernameSelectionScreen() {
   const insets = useSafeAreaInsets();
@@ -40,7 +42,7 @@ export default function UsernameSelectionScreen() {
 
   return (
     <View style={styles.container}>
-      <GradientBackground mythlingType={MythlingType.FIRE} />
+      <GradientBackground mythlingType={'fire'} />
 
       <View
         style={[

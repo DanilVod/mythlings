@@ -12,13 +12,13 @@ import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts, Bungee_400Regular } from '@expo-google-fonts/bungee';
 
-import { setAndroidNavigationBar } from '@/lib/android-navigation-bar';
-import { NAV_THEME } from '@/lib/constants';
-import { useColorScheme } from '@/lib/use-color-scheme';
-import { queryClient } from '@/utils/trpc';
-import { initI18n } from '@/lib/i18n';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { GameDataProvider } from '@/contexts/GameDataContext';
+import { setAndroidNavigationBar } from '@shared/lib/android-navigation-bar';
+import { NAV_THEME } from '@shared/lib/constants';
+import { useColorScheme } from '@shared/lib/use-color-scheme';
+import { queryClient } from '@shared/api/trpc';
+import { initI18n } from '@shared/config/i18n';
+import { AuthProvider } from '@features/auth';
+import { GameDataProvider } from '@features/game-data';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
